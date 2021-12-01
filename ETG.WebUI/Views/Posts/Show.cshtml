@@ -1,0 +1,120 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+@model ETG.WebBase.ViewModels.PostModel
+@{
+    ViewData["Title"] = "Show Post";
+}
+<h1>@Model.Title</h1>
+<div class="row">
+    <div class="col-md-7">
+        <p><small class="text-muted">@Model.CreateOn.ToString("G")</small></p>
+        @if (Model.Categories.Any())
+        {
+            <p>
+                Categories:
+                @foreach (var c in Model.Categories)
+                {
+                    <a asp-action="Category" asp-controller="Posts" asp-route-categoryId="@c.Id">@c.Title</a>
+                    <span>, </span>
+                }
+            </p>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+        {
+            <img src="~/@Url.Content(Model.ImageUrl)" class="img-fluid mb-3" alt="...">
+        }
+        <div class="mb-3">@Html.Raw(Model.Description)</div>
+
+        <h4>Comments</h4>
+        <div>
+            @if (Model.Comments.Any())
+            {
+                <hr>
+                <div class="comments-section">
+                    @foreach (var c in Model.Comments)
+                    {
+                        <p class="mb-0"> @c.User.UserName <small class="text-muted">commented on @c.CreateOn.ToString("G")</small></p>
+                        <div class="mb-3">@Html.Raw(c.Text)</div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="comments-section"></div>
+                <p class="no-comment">
+                    There is no comment.
+                </p>
+            }
+        </div>
+
+        @if (SignInManager.IsSignedIn(User))
+        {
+            <hr>
+            <div class="form-group">
+                <label>Add your comment:</label>
+                <textarea class="form-control" id="comment" name="comment" cols="10" rows="8"></textarea>
+            </div>
+            <a href="javascript:void()" onclick="addComment();" class="btn btn-primary">Submit</a>
+        }
+    </div>
+    <div class="col-md-3 col-md-offset-2 mt-md-3">
+
+        @if (SignInManager.IsSignedIn(User))
+        {
+        <div>
+            <a asp-action="Update" asp-controller="Posts" asp-route-postId="@Model.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+            <a asp-action="Remove" asp-controller="Posts" asp-route-postId="@Model.Id" onclick="return confirm('Are you sure you want to delete?');" class="btn btn-sm btn-outline-danger float-right">Remove</a>
+        </div>
+            <hr class="mb-4" />
+        }
+        <section>
+            <h4>Categories</h4>
+            <div class="list-group list-group-flush categories-section">
+            </div>
+        </section>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script>
+        var addComment = function () {
+            var jqxhr = $.post("/Posts/AddComment", {
+                    comment: $("#comment").val(),
+                    postId: "@Model.Id.ToString()"
+                });
+            // Handle results
+            jqxhr.done(function (result) {
+                $(".no-comment").hide();
+                $(".comments-section").append($(result));
+                $("#comment").val("");
+            });
+            jqxhr.fail(function() {
+                alert("ajax error");
+            });
+            jqxhr.always(function() {
+                //alert("ajax complete");
+            });
+        };
+
+        var getCategories = function () {
+            var jqxhr = $.post("/Posts/GetCategories");
+            // Handle results
+            jqxhr.done(function (result) {
+                $(".categories-section").html($(result));
+            });
+            jqxhr.fail(function() {
+                alert("ajax error");
+            });
+            jqxhr.always(function() {
+                //alert("ajax complete");
+            });
+        };
+
+        getCategories();
+
+    </script>
+}

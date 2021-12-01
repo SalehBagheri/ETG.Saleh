@@ -1,0 +1,111 @@
+﻿@model ETG.WebBase.ViewModels.PostModel
+@{
+    ViewData["Title"] = "Update Post";
+}
+<h1>Update Post</h1>
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Update" asp-controller="Posts" method="post" enctype="multipart/form-data">
+            <hr>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="UserId" />
+            <div class="form-group">
+                <label>Title</label>
+                <input class="form-control" asp-for="Title" required>
+            </div>
+            <div class="form-group">
+                <label>Image</label>
+                <input class="form-control form-control-file" asp-for="FileUpload">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea class="form-control" asp-for="Description" cols="10" rows="8"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+    </div>
+    <div class="col-md-4 col-md-offset-2">
+        <section>
+            <h4>Categories.</h4>
+            <hr>
+            <div>
+                @if (Model.Categories == null || !Model.Categories.Any())
+                {
+                    <div class="category-section"></div>
+                    <p id="no-category">
+                        There is no assigned category.
+                    </p>
+                }
+                else
+                {
+                <div class="category-section">
+                    @foreach (var c in Model.Categories)
+                    {
+                        <div class="card cat-item my-1" id="@c.Id">
+                            <div class="card-body p-2">
+                                <span>@c.Title</span>
+                                <a href="#" data-pcid="@c.Id" class="removeCat btn btn-sm btn-outline-danger float-right">Remove</a>
+                            </div>
+                        </div>
+                    }
+                </div>
+                }
+            </div>
+</section>
+        <section class="mt-4">
+            <h4>add new</h4>
+            <hr>
+            <div class="form-inline">
+                @if (Model.CategoriesList.Any())
+                {
+                    <select class="form-control category-select" name="categories" asp-items="@Model.CategoriesList"></select>
+                    <a href="javascript:void()" onclick="categoryAdd()" class="btn btn-outline-dark float-right ml-2">Add</a>
+                }
+            </div>
+        </section>
+
+    </div>
+</div>
+
+
+@section Scripts
+{
+    <script>
+        var categoryAdd = function () {
+            var jqxhr = $.post("/Posts/AssignCategory", {
+                    categoryId: $(".category-select").val(),
+                    postId: "@Model.Id.ToString()"
+                });
+            // Handle results
+            jqxhr.done(function(result) {
+                $(".category-section").html(result);
+                $("#no-category").hide();
+            });
+            jqxhr.fail(function() {
+                alert("ajax error");
+            });
+            jqxhr.always(function() {
+                //alert("ajax complete");
+            });
+        };
+
+        $(document).on("click", ".removeCat", function () {
+            var id = $(this).data("pcid");
+            var jqremove = $.post("/Posts/RemoveCategory", {
+                postCatId: String(id)
+            });
+            // Handle results
+            jqremove.done(function () {
+                var section = $(".category-section");
+                var div = section.find("div#" + String(id));
+                div.remove();
+            });
+            jqremove.fail(function () {
+                alert("ajax error");
+            });
+            jqremove.always(function () {
+                //alert("ajax complete");
+            });
+        });
+    </script>
+}

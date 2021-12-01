@@ -1,0 +1,55 @@
+﻿@page
+@inject SignInManager<IdentityUser> SignInManager
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="text-center mb-3">
+    <h1 class="display-4 mb-3">Welcome</h1>
+
+    <h5>Login Credentials</h5>
+    <p>
+        Email: andi.toci@etg.al <br />
+        Password: Andi@123
+    </p>
+</div>
+
+<div class="row mb-4">
+    @foreach (var c in Model.Categories)
+    {
+    <div class="col-lg-2 col-md-3 col-sm-4">
+        <div class="card mb-3">
+            <div class="card-body text-center">
+                <a asp-action="Category" asp-controller="Posts" asp-route-categoryId="@c.Id">@c.Title</a>
+            </div>
+        </div>
+    </div>
+    }
+</div>
+
+<div>
+    <div class="row">
+        @foreach (var p in Model.Posts)
+        {
+            <div class="col-md-4">
+                <div class="card mb-3">
+                    @if (!string.IsNullOrEmpty(p.ImageUrl))
+                    {
+                        <img src="~/@Url.Content(p.ImageUrl)" class="card-img-top" alt="...">
+                    }
+                    <div class="card-body">
+                        <h4 class="card-title"><a asp-action="Show" asp-controller="Posts" asp-route-postId="@p.Id">@p.Title</a></h4>
+                        <p class="card-text my-1"><small class="text-muted">@p.CreateOn.ToString("G")</small></p>
+                        <p class="card-text mt-0">@string.Format("{0} ...", p.Description.Substring(0, Math.Min(p.Description.Length, 140)))</p>
+
+                        <div class="mt-2">
+                            <a asp-action="Show" asp-controller="Posts" asp-route-postId="@p.Id" class="btn btn-sm btn-outline-info">Read more...</a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
